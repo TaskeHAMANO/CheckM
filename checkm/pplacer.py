@@ -26,6 +26,7 @@ import shutil
 import subprocess
 import logging
 from collections import defaultdict
+from subprocess import check_call
 
 from checkm.defaultValues import DefaultValues
 
@@ -69,16 +70,29 @@ class PplacerRunner():
 
         # run pplacer to place bins in reference genome tree
         self.logger.info('  Placing %d bins into the genome tree with pplacer (be patient).' % len(binFiles))
-        cmd = 'pplacer -j %d -c %s -o %s %s > %s' % (self.numThreads,
-                                                     pplacerRefPkg,
-                                                     pplacerJsonOut,
-                                                     concatenatedAlignFile,
-                                                     pplacerOut)
-        os.system(cmd)
+        # cmd = 'pplacer -j %d -c %s -o %s %s > %s' % (self.numThreads,
+        #                                              pplacerRefPkg,
+        #                                              pplacerJsonOut,
+        #                                              concatenatedAlignFile,
+        #                                              pplacerOut)
+        cmd = [
+            "pplacer",
+            "-j", "{0}".format(self.numThreads),
+            "-c", "{0}".format(pplacerRefPkg),
+            "-o", "{0}".format(pplacerJsonOut),
+            "{0}".format(concatenatedAlignFile)
+            ]
+        check_call(cmd, stdout=pplacerOut)
 
         # extract tree
-        cmd = 'guppy tog -o %s %s' % (treeFile, pplacerJsonOut)
-        os.system(cmd)
+        # cmd = 'guppy tog -o %s %s' % (treeFile, pplacerJsonOut)
+        cmd = [
+            "guppy",
+            "tog",
+            "-o", "{0}".format(treeFile),
+            "{0}".format(pplacerJsonOut)
+        ]
+        check_call(cmd)
 
     def __createConcatenatedAlignment(self, binFiles, resultsParser, alignOutputDir):
         """Create a concatenated alignment of marker genes for each bin."""
